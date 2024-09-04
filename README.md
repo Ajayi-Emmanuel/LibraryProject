@@ -12,33 +12,25 @@ Permissions are typically defined at the model level in Django. You can create c
 
 ### Defining Permissions in Models
 
-Permissions are defined in the `Meta` class of a model. Here’s how to define custom permissions:
+Permissions are defined in the `Meta` class of the book model. Here’s how to define custom permissions:
 
 ```python
-from django.db import modelsfrom django.contrib.auth.decorators import permission_required
-from django.shortcuts import render
-
-@permission_required('app_label.can_edit')
-def edit_entry(request):
-    # Logic for the view
-    return render(request, 'edit_entry.html')
-
-
-class MyModel(models.Model):
-    # Define your model fields here
+class Book(models.Model):
+    title = models.CharField(max_length=255)
+    author = models.CharField(max_length=255)
 
     class Meta:
         permissions = [
-            ("can_edit", "Can edit entries"),
-            ("can_create", "Can create entries"),
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
         ]
-```from django.contrib.auth.decorators import permission_required
-from django.shortcuts import render
 
-@permission_required('app_label.can_edit')
-def edit_entry(request):
-    # Logic for the view
-    return render(request, 'edit_entry.html')
+    def __str__(self):
+        return self.title
+    
+```
 
 ## Applying Permissions to Users
 
@@ -92,21 +84,22 @@ user.save()
 Use the permission_required decorator to enforce permissions:
 
 ```python
-from django.contrib.auth.decorators import permission_required
-from django.shortcuts import render
-from .forms import BookForm
+from django.shortcuts import render, redirect
 from .models import Book
+from .forms import ExampleForm
+from django.contrib.auth.decorators import permission_required
+from django.shortcuts import get_object_or_404
 
-@permission_required('relationship_app.can_edit', raise_exception=True)
+@permission_required('bookshelf.can_edit', raise_exception=True)
 def book_edit(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == 'POST':
-        form = BookForm(request.POST, instance=book)
+        form = ExampleForm(request.POST, instance=book)
         if form.is_valid():
             form.save()
-            return redirect('book_detail', pk=pk)  # Redirect to book detail view or desired page
+            return redirect('book_detail', pk=pk)  
     else:
-        form = BookForm(instance=book)
-    return render(request, 'book_form.html', {'form': form})
+        form = ExampleForm(instance=book)
+    return render(request, 'example_form.html', {'form': form})
 
 ```
